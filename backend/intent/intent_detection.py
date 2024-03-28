@@ -9,7 +9,7 @@ import os
 
 class IntentDetector(object):
     def __init__(self, model_name='gpt-3.5-turbo-0613'):
-        os.environ["OPENAI_API_KEY"] = "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"
+        
 
         self.intents = [
             {"label": 0, "description": "Not detected"},
@@ -19,8 +19,8 @@ class IntentDetector(object):
             {"label": 4, "description": "Recipe Search"},
             {"label": 5, "description": "Out of scope"},
         ]
-        id2label = {0: "Not detected", 1: "Diet Plan",2:"Food Calorie Calculation",3:"Recipe Recommendation", 4:"Recipe Search",5: "Out of scope"}
-        label2id = {"Not detected":0,  "Diet Plan":1,"Food Calorie Calculation":2,"Recipe Recommendation":3,"Recipe Search":4,"Out of Scope":5}
+        self.id2label = {0: "Not detected", 1: "Diet Plan",2:"Food Calorie Calculation",3:"Recipe Recommendation", 4:"Recipe Search",5: "Out of scope"}
+        self.label2id = {"Not detected":0,  "Diet Plan":1,"Food Calorie Calculation":2,"Recipe Recommendation":3,"Recipe Search":4,"Out of Scope":5}
         examples = [
             {'text' :  'I want to lose weight, can you create a diet plan for me?' , 'intent':'Diet Plan Design'},
             {'text' :  'I am 180cm tall and weigh 70kg, I want to build muscle, can you design a diet plan for me?' , 'intent':'Diet Plan Design'},

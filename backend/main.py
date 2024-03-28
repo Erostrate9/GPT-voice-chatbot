@@ -1,8 +1,8 @@
 from asr.speech_recognizer import SpeechRecognizer
 from tts.speech_synthesis import SpeechSynthesis
 from intent.intent_detection import IntentDetector
+from action.api import Action
 from sf.slot_filter import SlotMemory
-from sf.prompt import generate_dynamic_prompt
 from fastapi.responses import StreamingResponse, Response
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +15,8 @@ asr = SpeechRecognizer(model_name='tiny.en')
 tts = SpeechSynthesis(model="polly")
 intent_detector = IntentDetector(model_name='gpt-3.5-turbo-0613')
 sf = SlotMemory()
+action = Action()
+
 
 class MessagePayload(BaseModel):
     text: str
@@ -89,15 +91,28 @@ async def post_audio(file: UploadFile = File(...)):
 
 
 
-
+def handle_out_of_scope():
+    return "I'm sorry we can't support your request at this time, I can help you in these areas below: 1: 'Designing a diet plan', 2: 'Calculate calorie intake', 3: 'Recommend recipes based on ingredients', 4: 'Provide detailed steps for recipes'."
 
 @app.post("/receive-message/")
 async def receive_message(message_payload: MessagePayload):
     message_dict = message_payload.model_dump()
-    intetnt_dict = intent_detector.intent_detection(message_dict)
-    if intetnt_dict["intent"] != 0 or intetnt_dict["intent"] != 5:  
-        slot_dict = sf.load_memory_variables(intetnt_dict)
-        if slot_dict["finish"] == False:
-            # need to modify
-            return Response(content=generate_dynamic_prompt(slot_dict["slot"],slot_dict["text"]), media_type="audio/mpeg")
-    return {"received_data": message_payload}
+    message_dict = intent_detector.intent_detection(message_dict)
+    if message_dict["intent"] != 0 or message_dict["intent"] != 5:  
+        message_dict = sf.load_memory_variables(message_dict)
+        if message_dict["finish"] == False:
+            #TODO if some slots are "null" should ask user for that input
+            response = sf.ask_slot(message_dict)
+            message_payload.text = response
+            message_payload.intent = message_dict["intent"]
+            message_payload.slots = message_dict["slots"]
+            return Response(content=message_payload)
+        else:
+            response = action.api_handler(message_dict)
+            message_payload.text = response
+            message_payload.intent = message_dict["intent"]
+            message_payload.slots = message_dict["slots"]
+            sf.clear()
+            return Response(content=message_payload)
+    message_payload.text = handle_out_of_scope()
+    return Response(content=message_payload)

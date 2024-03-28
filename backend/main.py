@@ -1,14 +1,26 @@
 from asr.speech_recognizer import SpeechRecognizer
 from tts.speech_synthesis import SpeechSynthesis
+from intent.intent_detection import IntentDetector
+from sf.slot_filter import SlotMemory
+from sf.prompt import generate_dynamic_prompt
 from fastapi.responses import StreamingResponse, Response
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 import time
 
 app = FastAPI()
 asr = SpeechRecognizer(model_name='tiny.en')
 tts = SpeechSynthesis(model="polly")
+intent_detector = IntentDetector(model_name='gpt-3.5-turbo-0613')
+sf = SlotMemory()
+
+class MessagePayload(BaseModel):
+    text: str
+    intent: int = 0
+    finish: bool = False
+    slots: dict = []
 
 # CORS - Origins
 origins = [
@@ -74,3 +86,18 @@ async def post_audio(file: UploadFile = File(...)):
     #     yield audio_output
     # return StreamingResponse(iterfile(), media_type="application/octet-stream")
     return Response(content=audio_output, media_type="audio/mpeg")
+
+
+
+
+
+@app.post("/receive-message/")
+async def receive_message(message_payload: MessagePayload):
+    message_dict = message_payload.model_dump()
+    intetnt_dict = intent_detector.intent_detection(message_dict)
+    if intetnt_dict["intent"] != 0 or intetnt_dict["intent"] != 5:  
+        slot_dict = sf.load_memory_variables(intetnt_dict)
+        if slot_dict["finish"] == False:
+            # need to modify
+            return Response(content=generate_dynamic_prompt(slot_dict["slot"],slot_dict["text"]), media_type="audio/mpeg")
+    return {"received_data": message_payload}

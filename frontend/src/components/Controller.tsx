@@ -17,18 +17,36 @@ const Controller = () => {
     return url;
   }
 
+
   const handleSubmit = () => {
     console.log(inputValue);
     if (!inputValue.trim()){
       return;
     }
 
-    const myMessage = { sender: "me", blobUrl: null, text: inputValue};
-    const messagesArr = [...messages, myMessage];
-    setMessages(messagesArr);
+    const messagePayload = {
+      text: inputValue, // 用户输入的文本
+      intent: 0,        // 根据你的需求，这里是固定值
+      finish: false,    // 根据你的需求，这里是固定值
+      slots: {}         // 根据你的需求，这里是固定值
+    };
 
-    setInputValue('');
+    axios.post('http://localhost:3000/receive-message', messagePayload)
+    .then(response => {
+      // 这里处理后端的响应
+      console.log(response);
+      // 这里是你原来的逻辑，将消息添加到 messages 数组中
+      const myMessage = { sender: "me", blobUrl: null, text: inputValue};
+      const messagesArr = [...messages, myMessage];
+      setMessages(messagesArr);
+      setInputValue('');
+    })
+    .catch(error => {
+      // 处理请求失败的情况
+      console.error('There was an error!', error);
+    });
   };
+
 
   const handleStop = async (blobUrl: string) => {
     setIsLoading(true);

@@ -2,18 +2,21 @@ type Props = {
     audio: any;
 }
 function Message({audio} :Props) {
+    const USER = "me";
+    const AI = "Cooking Assistant";
+
     return (
         <div
           className={
             "flex flex-col " +
-            (audio.sender == "rachel" && "flex items-end")
+            (audio.sender == USER && "flex items-end")
           }
         >
           {/* Sender */}
           <div className="mt-4 ">
             <p
               className={
-                audio.sender == "rachel"
+                audio.sender == USER
                   ? "text-right mr-2 italic text-green-500"
                   : "ml-2 italic text-blue-500"
               }

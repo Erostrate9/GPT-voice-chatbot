@@ -3,9 +3,10 @@ import axios from "axios";
 
 type Props = {
   setMessages: any;
+  aiName: String;
 };
 
-function Title({ setMessages }: Props) {
+function Title({ setMessages, aiName }: Props) {
   const [isResetting, setIsResetting] = useState(false);
 
   // Reset conversation
@@ -17,7 +18,7 @@ function Title({ setMessages }: Props) {
 
   return (
     <div className="flex justify-between items-center w-full p-4 bg-gray-900 text-white font-bold shadow sticky top-0">
-      <div className="italic">Rachel</div>
+      <div className="italic">{aiName}</div>
       <button
         onClick={resetConversation}
         className={

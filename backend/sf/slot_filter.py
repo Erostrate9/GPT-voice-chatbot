@@ -4,22 +4,24 @@ from datetime import datetime
 from typing import List
 from langchain.chains.llm import LLMChain
 from langchain.memory.chat_memory import BaseChatMemory
-from langchain.memory.entity import BaseEntityStore, InMemoryEntityStore
 from langchain.prompts.base import BasePromptTemplate
 from langchain.base_language import BaseLanguageModel
-from pydantic import Field
 from dto.MessagePayload import MessagePayload
 
 from sf.prompt import DIET_PLAN_SLOT_EXTRACTION_PROMPT, CALORIE_CALCULATION_SLOT_EXTRACTION_PROMPT, \
     RECIPE_RECOMMENDATION_SLOT_EXTRACTION_PROMPT, RECIPE_SEARCH_SLOT_EXTRACTION_PROMPT, ASK_SLOT_PROMPT
 
+# slots need for each tasks
 DIET_PLAN_SLOT_DICT = {"height": "null", "weight": "null", "fitness_program": "null", "age": "null",
                        "avoid_eating": "null"}
 CALORIE_CALCULATION_SLOT_DICT = {"food": "null", "weight_or_number": "null"}
 RECIPE_RECOMMENDATION_SLOT_DICT = {"ingredient": "null"}
 RECIPE_SEARCH_SLOT_DICT = {"recipe_name": "null"}
 
-
+"""
+This class and the prompt used refer to the structure of Zehua Wen's slot memory class: https://github.com/iMagist486/Chatbot-Slot-Filling/blob/main/chains/slot_memory.py
+This class aims to extract the user input slots using the cue learning feature of generative large language modeling and save these slots locally until the slots for entire task is completed (finish == false) before emptying them.
+"""
 class SlotMemory(BaseChatMemory):
     llm: BaseLanguageModel
     slot_extraction_prompt: BasePromptTemplate = DIET_PLAN_SLOT_EXTRACTION_PROMPT
@@ -38,6 +40,7 @@ class SlotMemory(BaseChatMemory):
     current_datetime = datetime.now().strftime("%Y/%m/%d %H:%M")
     buffer = []
 
+    # set local intent, slot dict, and slots extraction prompt
     def set_intent(self, intent):
         self.intent = intent
         if intent == 1:
@@ -62,9 +65,11 @@ class SlotMemory(BaseChatMemory):
         """Will always return list of memory variables."""
         return [self.slot_key, self.chat_history_key, self.inform_check_key]
 
+    # set finish cheack if the slots requiring is finished
     def finish_check(self):
         self.finish = all(value != "null" for value in self.current_slots.values())
 
+    # load the slots extraction and store them in local
     def load_memory_variables(self, query: MessagePayload) -> MessagePayload:
         text = query.text
         intent = query.intent
@@ -90,14 +95,17 @@ class SlotMemory(BaseChatMemory):
         self.buffer = text
         return MessagePayload(text=self.buffer, intent=intent, finish=self.finish, slots=self.current_slots)
 
+    # initial the slot memory
     def clear(self) -> None:
         """Clear memory contents."""
         self.chat_memory.clear()
         self.intent = 0
         self.current_slots = copy.deepcopy(self.default_slots)
+        self.finish = False
 
+    # ask for empty slots
     def ask_slots(self):
-        # 根据当前意图设置任务描述
+        # Setting the task description based on the current intent
         task_descriptions = {
             1: "designing a diet plan",
             2: "calculating calorie intake",
@@ -106,10 +114,10 @@ class SlotMemory(BaseChatMemory):
         }
         task_description = task_descriptions.get(self.intent, "assisting with your request")
 
-        # 生成当前槽位状态的描述
+        # Generate a description of the current slot
         slots_description = json.dumps(self.current_slots, indent=2)
 
-        # 使用ASK_SLOT_PROMPT模板和langchain调用GPT生成询问文本
+        # Generate query text using ASK_SLOT_PROMPT template and langchain call to GPT
         chain = LLMChain(llm=self.llm, prompt=ASK_SLOT_PROMPT)
         question = chain.predict(
             task_description=task_description, slots=slots_description,

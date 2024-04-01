@@ -4,7 +4,10 @@ from langchain.prompts import (
     FewShotChatMessagePromptTemplate,
 )
 
-
+"""
+Class IntentDetector() used to detect the intent from text based on the few shot prpmpt learning
+in GPT model to.
+"""
 class IntentDetector(object):
     def __init__(self, model_name='gpt-3.5-turbo-0613'):
         self.intents = [
@@ -21,9 +24,8 @@ class IntentDetector(object):
             {'text': 'I am 180cm tall and weigh 70kg, I want to build muscle, can you design a diet plan for me?',
              'intent': 'Diet-Plan-Design'},
             {'text': 'How many calories are in two apples and a banana?', 'intent': "Food-Calorie-Calculation"},
-            {
-                'text': 'I had a McDonald\'s big mac for dinner and a large box of fries, how many calories did I take in?',
-                'intent': "Food-Calorie-Calculation"},
+            {'text': 'I had a McDonald\'s big mac for dinner and a large box of fries, how many calories did I take in?',
+             'intent': "Food-Calorie-Calculation"},
             {'text': 'What can I cook with chicken breast and rice?', 'intent': "Recipe-Recommendation"},
             {'text': 'I have a steak and a potato. Can you give me a suggestion for dinner?',
              'intent': "Recipe-Recommendation"},
@@ -53,7 +55,7 @@ class IntentDetector(object):
                 ###
                 label: 0
                 intent: Out-Of-Scope 
-                description: text does not contains any above intents will be classified as Out of scope
+                description: text does not contains any below intents will be classified as Out of scope
                 ###
                 label: 1, 
                 intent: Diet-Plan-Design

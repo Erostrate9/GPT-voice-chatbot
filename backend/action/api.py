@@ -1,41 +1,45 @@
+import os
 import requests
 from openai import OpenAI
 import re
 
+"""
+Class Action(): a class to perform tasks intended by the user
+"""
 class Action(object):
 
     def __init__(self):
         self.client = OpenAI()
     
+    # Calculate bmi based on height weight age
     def calculate_bmi(self, height, weight, age):
-    
         bmi = weight / ((height / 100) ** 2)
-        
         consumption = 1.2 * (655 + (9.6 * weight) + (1.8 * height) - (4.7 * age))
         return bmi, consumption
 
+    # Conversion of height units to standard units
     def parse_height(self,height_str):
-        
         match = re.match(r"(\d+(\.\d+)?)[\s]?(cm|in|inches)$", height_str, re.IGNORECASE)
         if match:
             value, _, unit = match.groups()
             if 'cm' in unit.lower():
                 return float(value)
             elif 'in' in unit.lower():  # Covers 'in' and 'inches'
-                return float(value) * 2.54  # 英寸到厘米的转换
-        return None  # 未匹配或格式错误
+                return float(value) * 2.54  # Inch to centimeter conversion
+        return None  # Unmatched or incorrectly formatted
 
+    # Conversion of weight units to standard units
     def parse_weight(self,weight_str):
-        
         match = re.match(r"(\d+(\.\d+)?)[\s]?(kg|lb|pounds)$", weight_str, re.IGNORECASE)
         if match:
             value, _, unit = match.groups()
             if 'kg' in unit.lower():
                 return float(value)
             elif 'lb' in unit.lower() or 'pounds' in unit.lower():
-                return float(value) * 0.453592  # 磅到千克的转换
-        return None  # 未匹配或格式错误
+                return float(value) * 0.453592  # Conversion of pounds to kilograms
+        return None  # Unmatched or incorrectly formatted
 
+    # Calculate the user's bmi index and calorie consumption, and call the GPT API to generate the appropriate diet plan.
     def calculate_bmi_and_diet_plan(self, slots):
         height_str = slots["height"]
         weight_str = slots["weight"]
@@ -62,11 +66,10 @@ class Action(object):
         diet_plan_content = response.choices[0].message.content
         return f"Hello, your BMI is {bmi:.2f}, your daily calorie consumption is roughly {consumption:.2f} calories, and the recommended diet plan is:\n{diet_plan_content}"
 
-
+    # Calling the GPT model to calculate the calories of the food
     def calculate_calorie_intake(self,slots):
         foods = slots["food"]
         quantities = slots["weight_or_number"]
-        # 示例：调用GPT模型计算食物的卡路里
         if len(foods) != len(quantities):
             return "Error: Foods and quantities lists must have the same length."
         prompt_parts = []
@@ -84,7 +87,7 @@ class Action(object):
         )
         return f"here is the calories calculation steps:\n {response.choices[0].message.content}."
 
-
+    # The GPT model is invoked to recommend recipes based on the user's existing ingredients.
     def recommend_recipes_based_on_ingredients(self,slots):
         ingredients = slots["ingredient"]
         
@@ -97,12 +100,13 @@ class Action(object):
         )
         return  response.choices[0].message.content
 
-
+    # Calls the recipe-by-api-ninja API to search for all recipes with the same recipe name as the user input, 
+    # returning the apology text if it is not there, or the first recipe in the list if it exists.
     def provide_detailed_steps_for_recipe(self,slots):
         recipe_name = slots["recipe_name"]
         url = 'https://recipe-by-api-ninjas.p.rapidapi.com/v1/recipe'
         querystring = {"query":recipe_name}
-        recipe_details = requests.get(url, headers={"X-RapidAPI-Key": "1c01dcf72dmsh8296e51e1f304d4p1928b3jsna74b0dcebb0f", "X-RapidAPI-Host": "recipe-by-api-ninjas.p.rapidapi.com"},params=querystring)
+        recipe_details = requests.get(url, headers={"X-RapidAPI-Key": os.getenv("X_RAPIDAPI_KEY"), "X-RapidAPI-Host": "recipe-by-api-ninjas.p.rapidapi.com"},params=querystring)
         response_dict = recipe_details.json()
         if response_dict == []:
             return "We apologize for not finding the recipe you were searching for."

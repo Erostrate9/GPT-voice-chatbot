@@ -1,45 +1,5 @@
 
-import json
 from langchain.prompts.prompt import PromptTemplate
-
-_DEFAULT_DIET_PLAN_TEMPLATE = """
-You are an AI assistant helping human make a diet plan.
-
-The following is a friendly conversation between a human and an AI.
-The AI is talkative and provides lots of specific details from its context.
-If the AI does not know the answer to a question, it truthfully says it does not know.
-
-The Current Slots shows all the information you need to make a diet plan.
-If height is "null" with respect to the Current Slots value, ask a question about the height of human.
-If weight is "null" with respect to the Current Slots value, ask a question about the weight of human.
-If age is "null" with respect to the Current Slots value, ask a question about the age of human.
-If fitness program is "null" with respect to the current slot value, the human is asked which fitness program it wants (is losing weight, is gaining muscle, etc.).
-If avoid eating is "null" with respect to the Current Slots value, ask a question about the human's avoid eating (Allergies, no meat, no sugar, etc.).
-
-If the Finsih is True, it means that all the information required for making a diet plan has been collected, the AI should design a diet plan based on the information human give and return the diet plan in the following way:
-height:
-weight:
-age:
-gender:
-fitness program:
-avoid eating:
-Diet Plan:
-
-Do not repeat the human's response!
-Do not output the Current Slots!
-
-Begin!
-Finsh:
-{finish}
-Conversation History:
-{history}
-Current Slots:
-{slots}
-Human: {input}
-AI:"""
-DIET_PLAN_CHAT_PROMPT = PromptTemplate(input_variables=["finish", "history","input", "slots"], template=_DEFAULT_DIET_PLAN_TEMPLATE)
-
-
 
 
 _DEFAULT_DIET_PLAN__SLOT_EXTRACTION_TEMPLATE = """
@@ -95,37 +55,6 @@ DIET_PLAN_SLOT_EXTRACTION_PROMPT = PromptTemplate(
 )
 
 
-_DEFAULT_CALORIE_CALCULATION_TEMPLATE = """
-You are an AI assistant helping human calculating calorie of foods.
-
-The following is a friendly conversation between a human and an AI.
-The AI is talkative and provides lots of specific details from its context.
-If the AI does not know the answer to a question, it truthfully says it does not know.
-
-The Current Slots shows all the information you need to calculating calorie of foods.
-If food is "null" with respect to the Current Slots value, ask a question about the category of food.
-If weight or number is "null" with respect to the Current Slots value, ask a question about the weight or number of food.
-
-If the Finsih is True, it means that all the information required for calculating calorie of foods has been collected, the AI should calculate {{calories}} based on the information human give and return the total calories in the following way:
-food:
-weight or number:
-These foods contains total {{calories}} calorie.
-
-Do not repeat the human's response!
-Do not output the Current Slots!
-
-Begin!
-Finsh:
-{finish}
-Conversation History:
-{history}
-Current Slots:
-{slots}
-Human: {input}
-AI:"""
-CALORIE_CALCULATION_CHAT_PROMPT = PromptTemplate(input_variables=["finish", "history","input", "slots"], template=_DEFAULT_CALORIE_CALCULATION_TEMPLATE)
-
-
 
 
 _DEFAULT_CALORIE_CALCULATION_SLOT_EXTRACTION_TEMPLATE = """
@@ -178,35 +107,6 @@ CALORIE_CALCULATION_SLOT_EXTRACTION_PROMPT = PromptTemplate(
 )
 
 
-_DEFAULT_RECIPE_RECOMMENDATION_TEMPLATE = """
-You are an AI assistant helping human recommending recipes based on input food.
-
-The following is a friendly conversation between a human and an AI.
-The AI is talkative and provides lots of specific details from its context.
-If the AI does not know the answer to a question, it truthfully says it does not know.
-
-The Current Slots shows all the information you need to recommending recipes.
-If ingredient is "null" with respect to the Current Slots value, ask a question about the ingredient human have now.
-
-If the Finsih is True, it means that all the information required for recommending recipes has been collected, the AI should recommend recipes based on the information human give and return recipes' names following way:
-ingredient:
-recommended recipes name:
-
-Do not repeat the human's response!
-Do not output the Current Slots!
-
-Begin!
-Finsh:
-{finish}
-Conversation History:
-{history}
-Current Slots:
-{slots}
-Human: {input}
-AI:"""
-RECIPE_RECOMMENDATION_CHAT_PROMPT = PromptTemplate(input_variables=["finish", "history","input", "slots"], template=_DEFAULT_RECIPE_RECOMMENDATION_TEMPLATE)
-
-
 
 
 _DEFAULT_RECIPE_RECOMMENDATION__SLOT_EXTRACTION_TEMPLATE = """
@@ -247,36 +147,6 @@ RECIPE_RECOMMENDATION_SLOT_EXTRACTION_PROMPT = PromptTemplate(
     input_variables=["history", "input", "slots"],
     template=_DEFAULT_RECIPE_RECOMMENDATION__SLOT_EXTRACTION_TEMPLATE,
 )
-
-
-_DEFAULT_RECIPE_SEARCH_TEMPLATE = """
-You are an AI assistant to provide human detailed steps for the recipe they input.
-
-The following is a friendly conversation between a human and an AI.
-The AI is talkative and provides lots of specific details from its context.
-If the AI does not know the answer to a question, it truthfully says it does not know.
-
-The Current Slots shows all the information you need to make a diet plan.
-If recipe name is "null" with respect to the Current Slots value, ask a question about the recipe name.
-
-If the Finsih is True, it means that all the information required for providing human detailed steps for the recipe they input has been collected , the AI should provide human detailed steps for the recipe they input and return the steps in the following way:
-recipe name:
-steps:
-
-Do not repeat the human's response!
-Do not output the Current Slots!
-
-Begin!
-Finsh:
-{finish}
-Conversation History:
-{history}
-Current Slots:
-{slots}
-Human: {input}
-AI:"""
-RECIPE_SEARCH_CHAT_PROMPT = PromptTemplate(input_variables=["finish", "history","input", "slots"], template=_DEFAULT_RECIPE_SEARCH_TEMPLATE)
-
 
 
 

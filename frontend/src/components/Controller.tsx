@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import Title from "./Title";
 import axios from "axios";
 import MessageRecorder from "./MessageRecorder";
@@ -16,6 +16,13 @@ const Controller = () => {
   const [intent, setIntent] = useState(0);
   const [finish, setFinish] = useState(false);
   const [slots, setSlots] = useState({});
+  const chatListRef = useRef(null)
+
+  useEffect(()=>{
+    if (chatListRef.current) {
+      chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
+    }
+  })
 
   const reset = () => {
     setMessages([]);
@@ -90,7 +97,7 @@ const Controller = () => {
 
       <div className="flex flex-col justify-between h-screen">
         {/* Conversation */}
-        <div className="flex-1 mt-5 px-5 flex-grow overflow-y-auto">
+        <div className="flex-1 mt-5 px-5 flex-grow overflow-y-auto" ref={chatListRef}>
           {
           messages?.map((audio, index) => {
             return <Message audio={audio} key={index + audio.sender}/>

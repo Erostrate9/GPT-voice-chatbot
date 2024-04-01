@@ -16,7 +16,7 @@ const Controller = () => {
   const [intent, setIntent] = useState(0);
   const [finish, setFinish] = useState(false);
   const [slots, setSlots] = useState({});
-  const chatListRef = useRef(null)
+  const chatListRef = useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
     if (chatListRef.current) {

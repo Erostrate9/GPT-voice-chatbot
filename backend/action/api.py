@@ -39,7 +39,8 @@ class Action(object):
     def calculate_bmi_and_diet_plan(self, slots):
         height_str = slots["height"]
         weight_str = slots["weight"]
-        age = int(slots["age"])
+        age = re.search(r'\d+', slots["age"]).group(0)
+        age = int(age)
 
         fitness_program = slots["fitness_program"]
         avoid_eating = slots["avoid_eating"]
@@ -110,13 +111,13 @@ class Action(object):
             return f"The steps you need to complete if you want to make a {response['title']} are: {response['instructions']}"
 
 
-    def handle_out_of_scope():
+    def handle_out_of_scope(self):
         return "I'm sorry we can't support your request at this time, I can help you in these areas below: 1: 'Designing a diet plan', 2: 'Calculate calorie intake', 3: 'Recommend recipes based on ingredients', 4: 'Provide detailed steps for recipes'."
 
-    def api_handler(self, meaasge_dict):
-        intent = meaasge_dict["intent"]
-        slots = meaasge_dict["slots"]
-        if intent == 1:
+    def api_handler(self, intent: str, slots: dict):
+        if intent == 0:
+            return self.handle_out_of_scope()
+        elif intent == 1:
             return self.calculate_bmi_and_diet_plan(slots)
         elif intent == 2:
             return self.calculate_calorie_intake(slots)
@@ -124,8 +125,6 @@ class Action(object):
             return self.recommend_recipes_based_on_ingredients(slots)
         elif intent == 4:
             return self.provide_detailed_steps_for_recipe(slots)
-        elif intent == 5:
-            return self.handle_out_of_scope()
         else:
             return "Invalid intent."
 

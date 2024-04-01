@@ -49,9 +49,9 @@ Named entities required for making a diet plan include height, weight, fitness p
 
 The output should be returned in the following json format.
 {{
-    "height": "Height of the user, including numbers and units"
-    "weight": "Weight of the user, including numbers and units"
-    "age": "Age of the user, only the number of years"
+    "height": "Height of the user, including numbers and units, e.g.: 180 cm"
+    "weight": "Weight of the user, including numbers and units, e.g.: 70 kg"
+    "age": "Age of the user, only the number of years. e.g.: 23"
     "fitness_program": "The user's current fitness program, such as wanting to gain weight, build muscle, lose weight, or eat normally."
     "avoid_eating": "User taboos, such as allergic foods, no meat, no sugar, or no taboos."
 }}
@@ -70,12 +70,12 @@ END OF EXAMPLE
 
 EXAMPLE
 Conversation history:
-Person #1: I'm 183 cm, I want to create a diet plan.
-AI: OK, may I ask your Weight?
-Current Slots: {{"height": "183 CM", "weight": "null", "age":"null", "fitness_program": "null", "avoid_eating": "null"}}
+Person #1: I'm 183cm tall, and weigh 70kg. I want to create a diet plan.
+AI: OK, may I ask your Age?
+Current Slots: {{"height": "183 CM", "weight": "null", "age":"23", "fitness_program": "null", "avoid_eating": "null"}}
 Last line:
-Person #1: 75 KG
-Output Slots: {{"height": "183 CM", "weight": "75 KG","age":"null", "fitness_program": "null", "avoid_eating": "null"}}
+Person #1: I'm 23 years old
+Output Slots: {{"height": "183 CM", "weight": "70 KG","age":"23", "fitness_program": "null", "avoid_eating": "null"}}
 END OF EXAMPLE
 
 Output Slots must be in json format!

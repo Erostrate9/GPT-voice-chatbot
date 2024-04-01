@@ -2,17 +2,17 @@ import { useState } from "react";
 import axios from "axios";
 
 type Props = {
-  setMessages: any;
+  reset: any;
   aiName: String;
 };
 
-function Title({ setMessages, aiName }: Props) {
+function Title({ reset, aiName }: Props) {
   const [isResetting, setIsResetting] = useState(false);
 
   // Reset conversation
   const resetConversation = async () => {
     setIsResetting(true);
-    setMessages([]);
+    reset();
     setIsResetting(false);
   };
 

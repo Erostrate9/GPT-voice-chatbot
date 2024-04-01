@@ -1,20 +1,31 @@
 import { ReactMediaRecorder } from "react-media-recorder";
 import RecordIcon from "./RecordIcon";
+import { useState } from "react";
 
 type Props = {
   handleStop: any;
 };
 
-const RecordMessage = ({ handleStop }: Props) => {
+const MessageRecorder = ({ handleStop }: Props) => {
+  const [isRecording, setIsRecording] = useState(false);
+
   return (
     <ReactMediaRecorder
       audio
       onStop={handleStop}
-      render={({ status, startRecording, stopRecording }) => (
+      render={({ status, startRecording, stopRecording }) => {
+        const toggleRecording = () => {
+          if (isRecording) {
+            stopRecording();
+          } else {
+            startRecording();
+          }
+          setIsRecording(!isRecording);
+        };
+        return (
         <div className="mt-2">
           <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
+            onClick={toggleRecording}
             className="bg-white p-4 rounded-full"
           >
             <RecordIcon
@@ -27,9 +38,9 @@ const RecordMessage = ({ handleStop }: Props) => {
           </button>
           <p className="mt-2 text-white font-light">{status}</p>
         </div>
-      )}
+      )}}
     />
   );
 };
 
-export default RecordMessage;
+export default MessageRecorder;

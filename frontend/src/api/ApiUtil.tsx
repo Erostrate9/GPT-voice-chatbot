@@ -2,6 +2,7 @@ import axios from 'axios';
 const URL = 'http://localhost:8000/';
 const TTS = URL + 'text-to-speech';
 const ASR = URL + 'speech-to-text';
+const CHAT: string = URL + 'chat';
  
 
 export function createBlobURL(data: any) {
@@ -55,4 +56,23 @@ export async function convertBlobUrlToText(blobUrl: string, mode: string): Promi
       console.error('Error converting blob URL to text:', error);
       return '';
     }
+};
+
+export type MessageDTO = {
+  text: string;
+  intent: number;
+  finish: boolean;
+  slots: {
+    [key: string]: any;
+  };
+};
+
+export async function chat(query: MessageDTO): Promise<MessageDTO | null> {
+  try {
+    const response =  await axios.post(CHAT, query);
+    return response.data;
+  } catch (error) {
+    console.error('There was an error when chat with Cooking Assistant!', error);
+    return null;
+  }
 };

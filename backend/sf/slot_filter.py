@@ -1,16 +1,14 @@
 import copy
 import json
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import List
 from langchain.chains.llm import LLMChain
 from langchain.memory.chat_memory import BaseChatMemory
 from langchain.memory.entity import BaseEntityStore, InMemoryEntityStore
-from langchain.memory.utils import get_prompt_input_key
 from langchain.prompts.base import BasePromptTemplate
 from langchain.base_language import BaseLanguageModel
-from langchain.schema.messages import get_buffer_string
-from langchain_openai import ChatOpenAI
 from pydantic import Field
+from dto.MessagePayload import MessagePayload
 
 from sf.prompt import DIET_PLAN_SLOT_EXTRACTION_PROMPT, CALORIE_CALCULATION_SLOT_EXTRACTION_PROMPT, \
     RECIPE_RECOMMENDATION_SLOT_EXTRACTION_PROMPT, RECIPE_SEARCH_SLOT_EXTRACTION_PROMPT, ASK_SLOT_PROMPT
@@ -37,7 +35,6 @@ class SlotMemory(BaseChatMemory):
     current_slots = copy.deepcopy(default_slots)
     intent = 0
     finish = False
-    entity_store: BaseEntityStore = Field(default_factory=InMemoryEntityStore)
     current_datetime = datetime.now().strftime("%Y/%m/%d %H:%M")
     buffer = []
 
@@ -68,19 +65,19 @@ class SlotMemory(BaseChatMemory):
     def finish_check(self):
         self.finish = all(value != "null" for value in self.current_slots.values())
 
-    def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        text = inputs["text"]
-        intent = inputs["intent"]
+    def load_memory_variables(self, query: MessagePayload) -> MessagePayload:
+        text = query.text
+        intent = query.intent
         if intent != self.intent:
             self.set_intent(intent)
-
+        if(query.slots and len(query.slots)>0):
+            self.current_slots = query.slots
         slots = self.current_slots
-
         chain = LLMChain(llm=self.llm, prompt=self.slot_extraction_prompt)
         output = chain.predict(
             history=self.buffer, input=text, slots=json.dumps(slots),
         )
-
+        print('output: ', output)
         output = output.replace("None", "null")
         try:
             output_json = json.loads(output)
@@ -88,21 +85,14 @@ class SlotMemory(BaseChatMemory):
             print(f"Error parsing output to JSON: {e}, output: {output}")
             output_json = slots
 
-        self.current_slots.update({k: v for k, v in output_json.items() if v != "null"})
+        self.current_slots.update({k: v for k, v in output_json.items() if v is not None and v != "null"})
         self.finish_check()
         self.buffer = text
-
-        return {
-            self.chat_history_key: self.buffer,
-            self.intent_key: self.intent,
-            self.finish_key: self.finish,
-            self.slot_key: self.current_slots,
-        }
+        return MessagePayload(text=self.buffer, intent=intent, finish=self.finish, slots=self.current_slots)
 
     def clear(self) -> None:
         """Clear memory contents."""
         self.chat_memory.clear()
-        self.entity_store.clear()
         self.intent = 0
         self.current_slots = copy.deepcopy(self.default_slots)
 

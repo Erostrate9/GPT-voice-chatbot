@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Title from "./Title";
 import axios from "axios";
-import RecordMessage from "./RecordMessage";
+import MessageRecorder from "./MessageRecorder";
 import Message from "./Message";
-import {getTextToSpeechBlobUrl, createBlobURL, convertBlobUrlToText} from "../api/ApiUtil";
+import {getTextToSpeechBlobUrl, convertBlobUrlToText, chat, MessageDTO} from "../api/ApiUtil";
 axios.defaults.withCredentials = true
 
 const Controller = () => {
@@ -13,7 +13,17 @@ const Controller = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [intent, setIntent] = useState(0);
+  const [finish, setFinish] = useState(false);
+  const [slots, setSlots] = useState({});
 
+  const reset = () => {
+    setMessages([]);
+    setIntent(0);
+    setFinish(false);
+    setSlots({});
+    console.log(`reset. intent:${intent}, finish:${finish}, slots:`, slots);
+  }
   const  handleSubmit = async () => {
     const userInput = inputValue.trim();
     console.log(userInput);
@@ -30,38 +40,27 @@ const Controller = () => {
     messagesArr.push(aiMessage);
     setMessages(messagesArr)
     setInputValue('');
-    // const messagePayload = {
-    //   text: inputValue, // 用户输入的文本
-    //   intent: 0,        // 根据你的需求，这里是固定值
-    //   finish: false,    // 根据你的需求，这里是固定值
-    //   slots: {}         // 根据你的需求，这里是固定值
-    // };
-
-    // axios.post('http://localhost:3000/receive-message', messagePayload)
-    // .then(response => {
-    //   // 这里处理后端的响应
-    //   console.log(response);
-    //   // 这里是你原来的逻辑，将消息添加到 messages 数组中
-    //   const myMessage = { sender: "me", blobUrl: null, text: inputValue};
-    //   const messagesArr = [...messages, myMessage];
-    //   setMessages(messagesArr);
-    //   setInputValue('');
-    // })
-    // .catch(error => {
-    //   // 处理请求失败的情况
-    //   console.error('There was an error!', error);
-    // });
   };
 
   const getAiResponse = async (inputText: string) => {
-    const resposne = inputText.trim();
+    const query = {
+      text: inputText,
+      intent: finish?0:intent,
+      finish: finish,
+      slots: finish?{}:slots,
+    };
+    const response: MessageDTO | null = await chat(query);
+    if (!response) {
+      return { sender: AI, blobUrl: null, text: 'ERROR'};
+    }
+    console.log("ai response: ");
+    console.log(response)
+    setIntent(response.intent);
+    setFinish(response.finish);
+    setSlots(response.slots);
     // tts
-    const blobUrl = await getTextToSpeechBlobUrl(resposne);
-    // play audio
-    const audio = new Audio();
-    audio.src = blobUrl;
-    audio.play();
-    return { sender: AI, blobUrl: blobUrl, text: resposne};
+    const blobUrl = await getTextToSpeechBlobUrl(response.text)
+    return { sender: AI, blobUrl: blobUrl, text: response.text};
   }
 
   const handleStop = async (blobUrl: string) => {
@@ -87,7 +86,7 @@ const Controller = () => {
   return (
     <div className="h-screen overflow-y-hidden">
       {/* Title */}
-      <Title setMessages={setMessages} aiName={AI}/>
+      <Title reset={reset} aiName={AI}/>
 
       <div className="flex flex-col justify-between h-screen">
         {/* Conversation */}
@@ -112,7 +111,7 @@ const Controller = () => {
         <div className="pb-16 w-full py-2 border-t text-center bg-gradient-to-r from-sky-500 to-green-500">
           <div className="flex justify-center items-center w-full">
             <div>
-              <RecordMessage handleStop={handleStop} />
+              <MessageRecorder handleStop={handleStop} />
             </div>
             <div>
               <input

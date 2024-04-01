@@ -32,7 +32,7 @@ EXAMPLE
 Conversation history:
 Person #1: I'm 183cm tall, and weigh 70kg. I want to create a diet plan.
 AI: OK, may I ask your Age?
-Current Slots: {{"height": "183 CM", "weight": "null", "age":"23", "fitness_program": "null", "avoid_eating": "null"}}
+Current Slots: {{"height": "183 CM", "weight": "70kg", "age":"null", "fitness_program": "null", "avoid_eating": "null"}}
 Last line:
 Person #1: I'm 23 years old
 Output Slots: {{"height": "183 CM", "weight": "70 KG","age":"23", "fitness_program": "null", "avoid_eating": "null"}}

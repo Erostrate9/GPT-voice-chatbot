@@ -6,4 +6,4 @@ langchain_openai==0.1.1
 openai==1.14.3
 openai_whisper==20231117
 pydantic==2.6.4
-Requests==2.31.0
+Requests==2.32.2
